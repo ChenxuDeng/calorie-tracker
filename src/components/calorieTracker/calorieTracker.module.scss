@@ -1,0 +1,66 @@
+.container{
+  width: 70rem;
+  height: 36rem;
+  border-radius: 0.6rem;
+  border: 0.3rem solid black;
+  margin: 0 auto;
+  padding:2rem;
+  &_header{
+    display: flex;
+    &_search{
+      display: flex;
+      align-items: center;
+    }
+    &_searchIcon{
+      position: absolute;
+      margin-left: 1rem;
+      font-size: 3.6rem !important;
+    }
+    &_input{
+      padding-left: 4.6rem;
+      border: 0.2rem solid black;
+      border-radius: 0.4rem;
+      width: 32rem;
+      height: 6rem;
+      font-size: 2rem;
+      background-color: #ececec;
+    }
+    &_targetCalorie{
+      border: 0.2rem solid black;
+      border-radius: 0.4rem;
+      display: flex;
+      justify-content: center;
+      margin-left: 2rem;
+      padding:0 1rem;
+      width: 32rem;
+      font-size: 2rem;
+    }
+  }
+  &_body{
+    display: flex;
+    .items{
+      border: 0.2rem solid black;
+      border-radius: 0.4rem;
+      width: 34.7rem;
+      margin-top: 2rem;
+      padding:1rem;
+      height: 25rem;
+      overflow: auto;
+    }
+    .summary{
+      display: block;
+      border: 0.2rem solid black;
+      border-radius: 0.4rem;
+      width: 28.5rem;
+      margin-top: 2rem;
+      padding:1rem;
+      height: 25rem;
+      margin-left: 2rem;
+      text-align: center;
+      font-size: 2rem;
+    }
+  }
+}
+
+
+
