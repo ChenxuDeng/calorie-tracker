@@ -3,10 +3,24 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import {createStore,combineReducers,applyMiddleware} from "redux";
+import {Provider} from "react-redux";
+import thunk from "redux-thunk";
+import calorieTracker from "./store/reducer/calorieTracker";
+
+const reducers=combineReducers({
+    calorieTracker:calorieTracker
+})
+
+const store=createStore(reducers,applyMiddleware(thunk))
+
+export type state=ReturnType<typeof reducers>
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+      <Provider store={store}>
+          <App />
+      </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 );

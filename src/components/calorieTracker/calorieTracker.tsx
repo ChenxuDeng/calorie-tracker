@@ -3,8 +3,11 @@ import classes from './calorieTracker.module.scss'
 import SearchIcon from '@material-ui/icons/Search';
 import {Input} from "antd";
 import axios from "axios";
-import {List, ListItem, MenuList, Paper, MenuItem, ClickAwayListener} from "@material-ui/core";
+import {MenuList, Paper, MenuItem, ClickAwayListener} from "@material-ui/core";
 import FoodItem from "./item/foodItem";
+import {useSelector} from "react-redux";
+import {state} from "../../index";
+import FoodItemRemove from "./item/foodItemRemove";
 
 interface props{
 
@@ -15,20 +18,67 @@ const CalorieTracker:React.FC<props>=(props)=>{
     const [input,setInput]=useState('')
     const [menu,setMenu]=useState(false)
     const [item,setItem]=useState<any[]>([])
+    const [calorie,setCalorie]=useState(0)
+    const [hints,setHints]=useState<any[]>([])
+    const [sticky,setSticky]=useState<any[]>([])
+
+    const quantity=useSelector((state:state)=>{
+        return state.calorieTracker.quantity
+    })
 
     useEffect(()=>{
-        axios.get(`https://api.edamam.com/auto-complete?app_id=af4c77be&app_key=9f09845aba8b748e805acf3c6178a151&q=${input}&limit=6`).then((response)=>{
+        input&&axios.get(`https://api.edamam.com/auto-complete?app_id=af4c77be&app_key=9f09845aba8b748e805acf3c6178a151&q=${input}&limit=6`).then((response)=>{
             setAutoComplete(response.data)
         })
     },[input])
 
     useEffect(() => {
-        axios.get(`https://api.edamam.com/api/menu-items/v2/search?app_id=af4c77be&app_key=9f09845aba8b748e805acf3c6178a151&q=${input}`).then((response)=>{
-            setItem(response.data.hints)
+        input&&axios.get(`https://api.edamam.com/api/menu-items/v2/search?app_id=af4c77be&app_key=9f09845aba8b748e805acf3c6178a151&q=${input}`).then((response)=>{
+            let result=[]
+            for(let key in response.data.hints){
+                result.push(response.data.hints[key].food.label)
+            }
+            const uniqueResult=Array.from(new Set(result))
+            setItem(uniqueResult)
         })
 
     }, [input]);
-    console.log(item)
+    //console.log(item)
+
+    useEffect(()=>{
+        input&&axios.get(`https://api.edamam.com/api/food-database/v2/parser?app_id=af4c77be&app_key=9f09845aba8b748e805acf3c6178a151&ingr=${input}`).then((response)=>{
+            setHints(response.data.hints)
+        })
+    },[input])
+
+    /*useEffect(()=>{
+        let result=[]
+        for(let key in hints){
+            result.push(hints[key])
+        }
+
+        const foodIndex=result.findIndex((item)=>{
+            return item.food.label===input || (item.food.label).toLowerCase()===input
+        })
+        console.log(foodIndex)
+
+        const param={
+            "ingredients": [
+                {
+                    "quantity": quantity,
+                    "measureURI": "http://www.edamam.com/ontologies/edamam.owl#Measure_unit",
+                    "foodId": hints[foodIndex]?.food.foodId
+                }
+            ]
+        }
+
+        input&&axios.post('https://api.edamam.com/api/food-database/v2/nutrients?app_id=af4c77be&app_key=9f09845aba8b748e805acf3c6178a151',param).then((response)=>{
+            console.log(response.data)
+        }).catch((error)=>{
+
+        })
+        //console.log(quantity,hints[foodIndex]?.food.foodId)
+    },[input,hints,quantity])*/
 
    return (
        <>
@@ -66,25 +116,69 @@ const CalorieTracker:React.FC<props>=(props)=>{
                    <div className={classes.container_header_targetCalorie}>
                        <div>
                            <div>today's calorie target</div>
-                           <div style={{textAlign:'center',marginTop:'0.3rem'}}>1000</div>
+                           <div style={{textAlign:'center',marginTop:'0.3rem',fontWeight:'bold'}}>1000</div>
                        </div>
                    </div>
                </div>
                <div className={classes.container_body}>
                    <div className={classes.items}>
-                       {item.map((item,index)=>{
-                           return <FoodItem name={item.food.label} key={index}/>
+                       {sticky.map((item,index)=>{
+                           const remove=()=>{
+                               const stickyCopy=sticky
+                               stickyCopy.splice(index,1)
+                               setSticky([...stickyCopy])
+
+                               console.log(sticky)
+                           }
+
+                           return (
+                               <FoodItemRemove name={item.name}
+                                               key={item.name}
+                                               style={{backgroundColor:'orange'}}
+                                               quantity={item.number}
+                                               remove={remove}
+                               />
+                           )
+                       })}
+                       {item?.map((items,index)=>{
+                           const param={
+                               "ingredients": [
+                                   {
+                                       "quantity": parseInt(quantity),
+                                       "measureURI": "http://www.edamam.com/ontologies/edamam.owl#Measure_unit",
+                                       "foodId": hints[index]?.food.foodId
+                                   }
+                               ]
+                           }
+                           const add=()=>{
+                               console.log(quantity)
+                               axios.post('https://api.edamam.com/api/food-database/v2/nutrients?app_id=af4c77be&app_key=9f09845aba8b748e805acf3c6178a151',param).then((response)=>{
+                                   //console.log(response.data)
+                                   //console.log(hints[index]?.food.foodId)
+                                   setCalorie(calorie+response.data.calories)
+                               })
+
+                               let itemCopy=item
+                               const [removedItem]=itemCopy.splice(index,1)
+                               setItem(itemCopy)
+
+                               const stickyCopy=sticky
+                               stickyCopy.push({name:removedItem,number:quantity})
+                               setSticky(stickyCopy)
+                               console.log(sticky)
+                           }
+                           return <FoodItem name={items} key={items} add={add}/>
                        })}
                    </div>
                    <div className={classes.summary}>
                        <div>
                            Your Daily calorie summary
                        </div>
-                       <div style={{marginTop:'6rem'}}>
-                           300cal
+                       <div style={{marginTop:'6rem',fontWeight:'bold'}}>
+                           {calorie} cal
                        </div>
-                       <div style={{marginTop:'2rem'}}>
-                           progress
+                       <div className={classes.progress}>
+
                        </div>
                    </div>
                </div>

@@ -8,11 +8,11 @@ interface props{
     name:string
     add?:()=>void
     style?:any
-
+    quantity:number
+    remove:()=>void
 }
 
-const FoodItem:React.FC<props>=(props)=>{
-
+const FoodItemRemove:React.FC<props>=(props)=>{
     const dispatch=useDispatch()
 
     return (
@@ -23,6 +23,7 @@ const FoodItem:React.FC<props>=(props)=>{
                 </div>
                 <select style={{border:'0.2rem solid black',borderRadius:'0.6rem'}}
                         onChange={(event)=>{dispatch(action.selectOption(event.target.value))}}
+                        value={props.quantity}
                 >
                     <option value={0}>
                         Qty
@@ -38,14 +39,14 @@ const FoodItem:React.FC<props>=(props)=>{
                     </option>
                 </select>
                 <Button variant={'outlined'}
-                         style={{border: '0.2rem solid black', borderRadius: '0.6rem'}}
-                         onClick={props.add}
+                        style={{border: '0.2rem solid black', borderRadius: '0.6rem'}}
+                        onClick={props.remove}
                 >
-                    Add
+                    Remove
                 </Button>
             </div>
         </>
     )
 }
 
-export default FoodItem
+export default FoodItemRemove
