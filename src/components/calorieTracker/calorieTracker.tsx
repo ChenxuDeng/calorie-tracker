@@ -3,7 +3,7 @@ import classes from './calorieTracker.module.scss'
 import SearchIcon from '@material-ui/icons/Search';
 import {Input} from "antd";
 import axios from "axios";
-import {MenuList, Paper, MenuItem, ClickAwayListener} from "@material-ui/core";
+import {ClickAwayListener, MenuItem, MenuList, Paper} from "@material-ui/core";
 import FoodItem from "./item/foodItem";
 import {useSelector} from "react-redux";
 import {state} from "../../index";
@@ -21,6 +21,8 @@ const CalorieTracker:React.FC<props>=(props)=>{
     const [calorie,setCalorie]=useState(0)
     const [hints,setHints]=useState<any[]>([])
     const [sticky,setSticky]=useState<any[]>([])
+    const [responseCalorie,setResponseCalorie]=useState<any>(0)
+    const [targetCalorie,setTargetCalorie]=useState<any>(1000)
 
     const quantity=useSelector((state:state)=>{
         return state.calorieTracker.quantity
@@ -51,34 +53,8 @@ const CalorieTracker:React.FC<props>=(props)=>{
         })
     },[input])
 
-    /*useEffect(()=>{
-        let result=[]
-        for(let key in hints){
-            result.push(hints[key])
-        }
-
-        const foodIndex=result.findIndex((item)=>{
-            return item.food.label===input || (item.food.label).toLowerCase()===input
-        })
-        console.log(foodIndex)
-
-        const param={
-            "ingredients": [
-                {
-                    "quantity": quantity,
-                    "measureURI": "http://www.edamam.com/ontologies/edamam.owl#Measure_unit",
-                    "foodId": hints[foodIndex]?.food.foodId
-                }
-            ]
-        }
-
-        input&&axios.post('https://api.edamam.com/api/food-database/v2/nutrients?app_id=af4c77be&app_key=9f09845aba8b748e805acf3c6178a151',param).then((response)=>{
-            console.log(response.data)
-        }).catch((error)=>{
-
-        })
-        //console.log(quantity,hints[foodIndex]?.food.foodId)
-    },[input,hints,quantity])*/
+    const width=((calorie/targetCalorie)*28.5)+'rem'
+    calorie<0&&setCalorie(0)
 
    return (
        <>
@@ -94,7 +70,7 @@ const CalorieTracker:React.FC<props>=(props)=>{
                            />
                        </div>
                        {menu?<ClickAwayListener onClickAway={()=>{setMenu(false)}}>
-                           <div style={{position: 'absolute'}}>
+                           <div style={{position: 'absolute',zIndex:1}}>
                                <Paper>
                                    <MenuList style={{padding: 0, width: '37rem'}}>
                                        {autoComplete.map((item) => {
@@ -115,8 +91,21 @@ const CalorieTracker:React.FC<props>=(props)=>{
 
                    <div className={classes.container_header_targetCalorie}>
                        <div>
-                           <div>today's calorie target</div>
-                           <div style={{textAlign:'center',marginTop:'0.3rem',fontWeight:'bold'}}>1000</div>
+                           <div style={{textAlign:'center'}}>today's calorie target</div>
+                           <input style={{
+                               textAlign:'center',
+                               marginTop:'0.3rem',
+                               fontWeight:'bold',
+                               border:'none',
+                               backgroundColor:'transparent',
+                               fontSize:'1.7rem'
+                           }}
+                                  value={targetCalorie}
+                                  onChange={(e)=>{
+                                      setTargetCalorie(e.target.value);
+                                      calorie<0&&setCalorie(0)
+                                  }}
+                           />
                        </div>
                    </div>
                </div>
@@ -128,6 +117,12 @@ const CalorieTracker:React.FC<props>=(props)=>{
                                stickyCopy.splice(index,1)
                                setSticky([...stickyCopy])
 
+                               setCalorie((prev)=>{
+                                   return prev-responseCalorie
+                               })
+
+                               calorie<0&&setCalorie(0)
+                               sticky.length===0&&setCalorie(0)
                                console.log(sticky)
                            }
 
@@ -155,7 +150,10 @@ const CalorieTracker:React.FC<props>=(props)=>{
                                axios.post('https://api.edamam.com/api/food-database/v2/nutrients?app_id=af4c77be&app_key=9f09845aba8b748e805acf3c6178a151',param).then((response)=>{
                                    //console.log(response.data)
                                    //console.log(hints[index]?.food.foodId)
-                                   setCalorie(calorie+response.data.calories)
+                                   setCalorie((prev)=>{
+                                       return prev + response.data.calories
+                                   })
+                                   setResponseCalorie(response.data.calories)
                                })
 
                                let itemCopy=item
@@ -164,8 +162,9 @@ const CalorieTracker:React.FC<props>=(props)=>{
 
                                const stickyCopy=sticky
                                stickyCopy.push({name:removedItem,number:quantity})
-                               setSticky(stickyCopy)
+                               setSticky([...stickyCopy])
                                console.log(sticky)
+                               console.log(responseCalorie)
                            }
                            return <FoodItem name={items} key={items} add={add}/>
                        })}
@@ -178,7 +177,14 @@ const CalorieTracker:React.FC<props>=(props)=>{
                            {calorie} cal
                        </div>
                        <div className={classes.progress}>
+                           <div style={{
+                               height:'5rem',
+                               borderRadius:'1rem',
+                               backgroundColor:'#4098ff',
+                               width:width
+                           }}>
 
+                           </div>
                        </div>
                    </div>
                </div>

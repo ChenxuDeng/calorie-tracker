@@ -1,12 +1,17 @@
 .container{
   width: 70rem;
-  height: 36rem;
   border-radius: 0.6rem;
   border: 0.3rem solid black;
   margin: 0 auto;
   padding:2rem;
+  @media (max-width: 750px) {
+    width: 37rem;
+  }
   &_header{
     display: flex;
+    @media (max-width: 750px) {
+      display: block;
+    }
     &_search{
       display: flex;
       align-items: center;
@@ -34,10 +39,16 @@
       padding:0 1rem;
       width: 32rem;
       font-size: 2rem;
+      @media (max-width: 750px) {
+        margin:2rem auto;
+      }
     }
   }
   &_body{
     display: flex;
+    @media (max-width: 750px) {
+      display: block;
+    }
     .items{
       border: 0.2rem solid black;
       border-radius: 0.4rem;
@@ -58,6 +69,9 @@
       margin-left: 2rem;
       text-align: center;
       font-size: 2rem;
+      @media (max-width: 750px) {
+        margin:2rem auto;
+      }
     }
     .progress{
       margin-top: 2rem;
